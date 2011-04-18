@@ -1,0 +1,366 @@
+%{
+#include "Error.h"
+#include "Type.h"
+#include "Expr.h"
+#include "Symbol.h"
+#include "Func.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+
+#define DUMP_AST
+
+using namespace std;
+
+void yyerror(const char *msg);
+int yylex();
+
+SymbolTable *symtab;
+map<string,Func*> functions;
+
+void defineConstant(const string& name, Expr *expr);
+void declareProto(const string& name, 
+                  Type *retType, 
+                  vector<ParamSymbol*> *formals);
+void defineFuncBegin(const string& name, 
+                     Type *retType, 
+                     vector<ParamSymbol*> *formals);
+void defineFuncEnd(const string& name, 
+                   Expr *body);
+
+void matchTypes(Expr*& left, Expr*& right);
+void matchBasicTypes(Expr*& left, Expr*& right);
+void matchNumericTypes(Expr*& left, Expr*& right);
+
+Expr *funcCall(const string& name, vector<Expr*> *actuals);
+
+%}
+%union {
+  std::string *s;
+  int i;
+  bool b;
+  double f;
+  ParamSymbol *formal;
+  std::vector<ParamSymbol*> *formals;
+  Type *type;
+  Expr *expr;
+  std::vector<Expr*> *exprs;
+}
+%token <s> ID
+%token <b> BOOL_LIT
+%token <i> INT_LIT
+%token <f> FLOAT_LIT
+%type <formal> formal
+%type <formals> formals formal_list
+%type <type> type
+%type <expr> expr lexical block
+%type <exprs> lexicals expr_list actuals actual_list
+%token IF ELSE LET BOOL INT FLOAT 
+%right ELSE
+%left OR
+%left AND
+%right NOT
+%nonassoc EQ NE
+%nonassoc '<' LE '>' GE
+%left '+' '-'
+%left '*' '/' '%'
+%right UMINUS CAST
+%nonassoc LENGTH
+%left '['
+%%
+prog           : consts funcs
+               ;
+
+consts         : consts const
+               |
+               ;
+
+const          : ID '=' expr    {defineConstant(*$1,$3);}
+               ;                                     
+
+funcs          : funcs func
+               |
+               ;
+
+func           : type ID '(' formals ')' ';' {declareProto(*$2,$1,$4);}
+               | type ID '(' formals ')'     {defineFuncBegin(*$2,$1,$4);}
+                             block           {defineFuncEnd(*$2,$7);}
+               ;
+
+formals        : formal_list
+               |                {$$ = new vector<ParamSymbol*>;}
+               ;
+
+formal_list    : formal_list ',' formal {$1->push_back($3); $$ = $1;}
+               | formal   {$$ = new vector<ParamSymbol*>; $$->push_back($1);}
+               ;
+
+formal         : type ID  {$$ = new ParamSymbol(*$2,$1);}
+               ;
+
+type           : BOOL          {$$ = Type::getBoolType();}
+               | INT           {$$ = Type::getIntType();}
+               | FLOAT         {$$ = Type::getFloatType();}
+               | type '[' ']'  {$$ = 0; throw("Arrays not implemented!");}
+               ;
+
+expr           : expr OR expr  {if (!$1->type()->isBoolType() ||
+                                    !$3->type()->isBoolType())
+                                  throw Error("operands not bool");
+                                $$ = new OrExpr($1,$3);}
+               | expr AND expr {if (!$1->type()->isBoolType() ||
+                                    !$3->type()->isBoolType())
+                                  throw Error("operands not bool");
+                                $$ = new AndExpr($1,$3);}
+               | NOT expr      {if (!$2->type()->isBoolType())
+                                  throw Error("operand not bool");
+                                $$ = new NotExpr($2);}
+               | expr EQ expr  {matchBasicTypes($1,$3);
+                                $$ = new EQExpr($1,$3);}
+               | expr NE expr  {matchBasicTypes($1,$3);
+                                $$ = new NEExpr($1,$3);}
+               | expr '<' expr {matchNumericTypes($1,$3);
+                                $$ = new LTExpr($1,$3);}
+               | expr LE expr  {matchNumericTypes($1,$3);
+                                $$ = new LEExpr($1,$3);}
+               | expr '>' expr {matchNumericTypes($1,$3);
+                                $$ = new GTExpr($1,$3);}
+               | expr GE expr  {matchNumericTypes($1,$3);
+                                $$ = new GEExpr($1,$3);}
+               | expr '+' expr {matchNumericTypes($1,$3);
+                                $$ = new AddExpr($1,$3);}
+               | expr '-' expr {matchNumericTypes($1,$3);
+                                $$ = new SubExpr($1,$3);}
+               | expr '*' expr {matchNumericTypes($1,$3);
+                                $$ = new MulExpr($1,$3);}
+               | expr '/' expr {matchNumericTypes($1,$3);
+                                $$ = new DivExpr($1,$3);}
+               | expr '%' expr {matchNumericTypes($1,$3);
+                                $$ = new RemExpr($1,$3);}
+               | '(' type ')' expr %prec CAST 
+		               {if (!$2->isNumericType() ||
+                                    !$4->type()->isNumericType())
+                                  throw Error("cast with non-numeric types");
+                                if ($2->equals($4->type()))
+                                  $$ = $4;
+                                else if ($2->isIntType())
+                                  $$ = new FloatToIntExpr($4);
+                                else
+                                  $$ = new IntToFloatExpr($4);}
+               | '-' expr  %prec UMINUS
+                               {if (!$2->type()->isNumericType())
+                                 throw Error("bogus unary minus operand");
+                                $$ = new NegExpr($2);}
+               | '+' expr  %prec UMINUS
+                               {if (!$2->type()->isNumericType())
+                                 throw Error("bogus unary plus operand");
+                                $$ = $2;}
+               | '(' expr ')'  {$$ = $2;}
+               | IF '(' expr ')' expr ELSE expr
+                               {if (!$3->type()->isBoolType())
+                                  throw Error("condition not a bool");
+                                matchTypes($5,$7);
+                                $$ = new IfExpr($3,$5,$7);}
+               | LET '('  {symtab = new SymbolTable(symtab);}
+                  lexicals ')' block {$$ = new LetExpr($4,$6);
+                                      symtab = symtab->prev();}
+               | ID '(' actuals ')' {$$ = funcCall(*$1,$3);}
+               | ID                 {Symbol *sym = symtab->get(*$1);
+                                     if (sym == 0)
+                                       throw Error("Var '" + *$1 + 
+						   "' undefined");
+                                     $$ = new VarExpr(sym);}
+               | expr '[' expr ']'  {$$ = 0; throw("Arrays not implemented!");}
+               | LENGTH expr        {$$ = 0; throw("Arrays not implemented!");}
+               | BOOL_LIT           {$$ = new BoolLitExpr($1);}  
+               | INT_LIT            {$$ = new IntLitExpr($1);}
+               | FLOAT_LIT          {$$ = new FloatLitExpr($1);}
+               | array_lit          {$$ = 0; throw("Arrays not implemented!");}
+               | block
+               ;
+
+array_lit      : '[' elem_list ']'  
+               ;
+
+elem_list      : elem_list ',' expr
+               | expr
+               ;
+
+block          : '{' expr_list '}'   {$$ = new BlockExpr($2);}
+               ;
+
+expr_list      : expr_list ';' expr  {$1->push_back($3); $$ = $1;}
+               | expr   {$$ = new vector<Expr*>; $$->push_back($1);}
+               ;
+
+lexicals       : lexicals ',' lexical {$1->push_back($3); $$ = $1;}
+               | lexical  {$$ = new vector<Expr*>; $$->push_back($1);}
+               ;
+
+lexical        : ID '=' expr {Symbol *sym = symtab->get(*$1);
+                              if (sym != 0)
+                                throw Error("variable '" + *$1 + 
+                                            "' shadows previous var");
+                              sym = new LexicalSymbol(*$1,$3->type());
+                              symtab->put(*$1,sym);
+                              $$ = new LexicalInitExpr(*$1,$3);}
+               ;
+
+actuals        : actual_list
+               |    {$$ = new vector<Expr*>;}
+               ;
+
+actual_list    : actual_list ',' expr {$1->push_back($3); $$ = $1;}
+               | expr   {$$ = new vector<Expr*>; $$->push_back($1);}
+               ;
+
+%%
+
+void defineConstant(const string& name, Expr *expr) {
+  Symbol *sym = symtab->get(name);
+  if (sym != 0)
+    throw Error("constant '" + name + "' already defined");
+  sym = new ConstantSymbol(name, expr->type());
+  symtab->put(name, sym);
+}
+
+void checkSignature(Func *f,
+		    Type *retType, 
+		    vector<ParamSymbol*> *formals) {
+  if (!f->type()->equals(retType))
+    throw Error("mismatching return type");
+  const unsigned n = f->numParams();
+  if (n != formals->size())
+      throw Error("mismatching number of parameters");
+  for (unsigned i = 0; i < n; i++) {
+    const ParamSymbol *param = f->param(i);
+    if (!param->type()->equals((*formals)[i]->type())) {
+      stringstream ss;
+      ss << "mismatching type for parameter " << i;
+      throw Error(ss.str());
+    }
+  }
+}
+
+void declareProto(const string& name, 
+                  Type *retType, 
+                  vector<ParamSymbol*> *formals) {
+  map<string,Func*>::iterator iter = functions.find(name);
+  Func *f;
+  if (iter == functions.end()) {
+    f = new UserFunc(name, retType, formals);
+    functions[name] = f;
+  } else {
+    f = iter->second;
+    checkSignature(f, retType, formals);
+  }
+#ifdef DUMP_AST
+  if (!f->isDefined())
+    cout << f->str();
+#endif
+}
+
+void defineFuncBegin(const string& name, 
+                     Type *retType, 
+                     vector<ParamSymbol*> *formals) {
+  map<string,Func*>::iterator iter = functions.find(name);
+  Func *f;
+  if (iter == functions.end()) {
+    f = new UserFunc(name, retType, formals);
+    functions[name] = f;
+  } else {
+    f = iter->second;
+    if (f->isDefined())
+      throw Error("function '" + name + "' already defined");
+    checkSignature(f, retType, formals);
+  }
+  symtab = new SymbolTable(symtab);
+  const unsigned n = f->numParams();
+  for (unsigned i = 0; i < n; i++) {
+    ParamSymbol *param = (*formals)[i];
+    symtab->put(param->name(),param);
+  }
+}
+
+void defineFuncEnd(const string& name, 
+                   Expr *body) {
+  UserFunc *f = static_cast<UserFunc*>(functions[name]);
+  if (body->type()->isIntType() && f->type()->isFloatType())
+    body = new IntToFloatExpr(body);
+  if (!body->type()->equals(f->type()))
+    throw Error("return type mismatch with body of function '" + name + "'");
+  f->setBody(body);
+  SymbolTable *old = symtab;
+  symtab = symtab->prev();
+  delete old;
+#ifdef DUMP_AST
+  cout << f->str();
+#endif
+}
+
+void matchTypes(Expr*& left, Expr*& right) {
+  if (left->type()->isFloatType() && right->type()->isIntType())
+    right = new IntToFloatExpr(right);
+  if (left->type()->isIntType() && right->type()->isFloatType())
+    left = new IntToFloatExpr(left);
+  if (!left->type()->equals(right->type()))
+    throw Error("mismatched types");
+}
+
+void matchBasicTypes(Expr*& left, Expr*& right) {
+  if (!left->type()->isBasicType() || !right->type()->isBasicType())
+    throw Error("operands not basic type");
+  matchTypes(left, right);
+}
+
+void matchNumericTypes(Expr*& left, Expr*& right) {
+  matchBasicTypes(left, right);
+  if (left->type()->isBoolType())
+    throw Error("operation not defined for bool's");
+}
+
+Expr *funcCall(const string& name, vector<Expr*> *actuals) {
+  map<string,Func*>::iterator iter = functions.find(name);
+  if (iter == functions.end())
+    throw Error("unknown function '" + name + "'");
+  Func *f = iter->second;
+  const unsigned n = f->numParams();
+  if (actuals->size() != n)
+    throw Error("wrong number of parameters for function " + name + "'");
+  for (unsigned i = 0; i < n; i++) {
+    const ParamSymbol *param = f->param(i);
+    Type *type = param->type();
+    Expr *actual = (*actuals)[i];
+    if (type->isFloatType() && actual->type()->isIntType())
+      actual = (*actuals)[i] = new IntToFloatExpr(actual);
+    if (!type->equals(actual->type())) {
+      stringstream ss;
+      ss << "Type mismatch for arg " << i << " for func '" << name << "'!";
+      throw Error(ss.str());
+    }
+  }
+  return new FuncCallExpr(f->type(), name, actuals);
+}
+                       
+extern int yylineno;
+
+void yyerror(const char *msg) {
+  cerr << yylineno << ": " << msg << "!" << endl;
+  exit(1);
+}
+
+extern FILE *yyin;
+
+int main(int argc, char *argv[]) {
+  yyin = stdin;
+  try {
+    yyparse();
+  } catch (Error err) {
+    yyerror(err.message().c_str());
+  }
+  return 0;
+}
