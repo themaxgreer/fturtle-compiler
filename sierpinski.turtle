@@ -1,0 +1,40 @@
+#
+# Sierpinski's Triangle
+#
+# L-System:
+#  start: A
+#  rules:
+#     A -> B-A-B
+#     B -> A+B+A
+#  semantics:
+#     A and B mean move forward
+#     + and - mean turn left/right by 60 degrees
+#
+
+max_depth = 5
+
+int B(int depth, float dist);
+
+int A(int depth, float dist) {  # rule A -> B-A-B
+  if (depth > 0)
+    let (d = depth-1) {
+      B(d,dist); rotate(-60);
+      A(d,dist); rotate(-60);
+      B(d,dist)
+    }
+  else move(dist)
+}
+
+int B(int depth, float dist) { # B -> A+B+A
+  if (depth > 0)
+    let (d = depth-1) {
+      A(d,dist); rotate(60);
+      B(d,dist); rotate(60);
+      A(d,dist)
+    } 
+  else move(dist)
+}
+
+int tmain() {A(6,1)}  # start symbol A
+       
+      

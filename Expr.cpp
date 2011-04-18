@@ -17,7 +17,7 @@ string LetExpr::str() const {
 
 std::string FuncCallExpr::str() const {
   stringstream ss;
-  ss << "name(";
+  ss << name << "(";
   const unsigned n = args->size();
   for (unsigned i = 0; i < n; i++) {
     ss << (*args)[i]->str();

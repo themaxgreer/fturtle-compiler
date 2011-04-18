@@ -226,6 +226,9 @@ void defineConstant(const string& name, Expr *expr) {
     throw Error("constant '" + name + "' already defined");
   sym = new ConstantSymbol(name, expr->type());
   symtab->put(name, sym);
+#ifdef DUMP_AST
+  cout << name << "=" << expr->str() << endl;
+#endif
 }
 
 void checkSignature(Func *f,
@@ -260,7 +263,7 @@ void declareProto(const string& name,
   }
 #ifdef DUMP_AST
   if (!f->isDefined())
-    cout << f->str();
+    cout << f->str() << endl;
 #endif
 }
 
@@ -298,7 +301,7 @@ void defineFuncEnd(const string& name,
   symtab = symtab->prev();
   delete old;
 #ifdef DUMP_AST
-  cout << f->str();
+  cout << f->str() << endl;
 #endif
 }
 
@@ -356,6 +359,24 @@ void yyerror(const char *msg) {
 extern FILE *yyin;
 
 int main(int argc, char *argv[]) {
+  symtab = new SymbolTable;
+
+  functions["home"] = new ExternFunc("home",Type::getIntType());
+  functions["pushstate"] = new ExternFunc("pushstate",Type::getIntType());
+  functions["popstate"] = new ExternFunc("popstate",Type::getIntType());
+  
+  vector<ParamSymbol*> *params = new vector<ParamSymbol*>;
+  params->push_back(new ParamSymbol("flag",Type::getBoolType()));
+  functions["pendown"] = new ExternFunc("pendown",Type::getIntType(),params);
+
+  params = new vector<ParamSymbol*>;
+  params->push_back(new ParamSymbol("dist",Type::getFloatType()));
+  functions["move"] = new ExternFunc("move",Type::getIntType(),params);
+
+  params = new vector<ParamSymbol*>;
+  params->push_back(new ParamSymbol("angle",Type::getFloatType()));
+  functions["rotate"] = new ExternFunc("rotate",Type::getIntType(),params);
+
   yyin = stdin;
   try {
     yyparse();

@@ -222,7 +222,7 @@ class IfExpr : public Expr {
   Expr *else_;
 public:
   IfExpr(Expr *c, Expr *t, Expr *e)
-    : Expr(then_->type()), cond(c), then_(t), else_(e) {}
+    : Expr(t->type()), cond(c), then_(t), else_(e) {}
   virtual std::string str() const {
     return 
       "if(" + cond->str() + ", " + 
@@ -262,7 +262,7 @@ public:
 class VarExpr : public Expr {
   Symbol *sym;
 public:
-  VarExpr(Symbol *s) : Expr(s->type()) {}
+  VarExpr(Symbol *s) : Expr(s->type()), sym(s) {}
   virtual std::string str() const {return sym->str();}
 };
 

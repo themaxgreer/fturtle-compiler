@@ -14,19 +14,27 @@ protected:
   std::vector<ParamSymbol*> *params;
 public:
   Func(const std::string& n, 
-       Type *t, std::vector<ParamSymbol*> *p) 
+       Type *t, std::vector<ParamSymbol*> *p = 0) 
     : name_(n), type_(t), params(p) {}
   virtual ~Func() {
-    for (unsigned i = 0; i < params->size(); i++)
+    for (unsigned i = 0; i < numParams(); i++)
       delete (*params)[i];
     delete params;
   }
   const std::string& name() const {return name_;}
   Type *type() const {return type_;}
-  unsigned numParams() const {return params->size();}
+  unsigned numParams() const {return (params == 0) ? 0 : params->size();}
   const ParamSymbol *param(unsigned i) const {return (*params)[i];}
   virtual bool isDefined() const = 0;
   virtual std::string str() const;
+};
+
+class ExternFunc : public Func {
+public:
+  ExternFunc(const std::string& n, 
+	     Type *t, std::vector<ParamSymbol*> *p=0) 
+    : Func(n,t,p) {}
+  virtual bool isDefined() const {return true;}
 };
 
 class UserFunc : public Func {

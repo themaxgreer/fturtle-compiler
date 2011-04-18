@@ -11,12 +11,12 @@
 using namespace std;
 map<string,string*> namePool;
 %}
-
+%option nounput
 %%
-[0-9]+                  {return yylval.i = atoi(yytext); INT_LIT;}
-[0-9]+\.[0-9]+          {return yylval.f = atof(yytext); FLOAT_LIT;}
-false                   {return yylval.b = false; BOOL_LIT;}
-true                    {return yylval.b = true; BOOL_LIT;}
+[0-9]+                  {yylval.i = atoi(yytext); return INT_LIT;}
+[0-9]+\.[0-9]+          {yylval.f = atof(yytext); return FLOAT_LIT;}
+false                   {yylval.b = false; return BOOL_LIT;}
+true                    {yylval.b = true; return BOOL_LIT;}
 bool                    {return BOOL;}
 int                     {return INT;}
 float                   {return FLOAT;}
