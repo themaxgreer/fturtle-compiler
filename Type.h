@@ -27,7 +27,7 @@ class BoolType : public BasicType {
 public:
   virtual bool isBoolType() const {return true;}
   virtual bool equals(const Type *other) const {return other->isBoolType();}
-  virtual std::string str() const {return "i1";}
+  virtual std::string str() const {return "bool";}
 };
 
 class NumericType : public BasicType {
@@ -39,7 +39,7 @@ class IntType : public NumericType {
 public:
   virtual bool isIntType() const {return true;}
   virtual bool equals(const Type *other) const {return other->isIntType();}
-  virtual std::string str() const {return "i32";}
+  virtual std::string str() const {return "int";}
 };
 
 class FloatType : public NumericType {

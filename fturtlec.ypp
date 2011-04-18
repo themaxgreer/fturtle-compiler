@@ -227,7 +227,8 @@ void defineConstant(const string& name, Expr *expr) {
   sym = new ConstantSymbol(name, expr->type());
   symtab->put(name, sym);
 #ifdef DUMP_AST
-  cout << name << "=" << expr->str() << endl;
+  cout << name << "=" << endl;
+  expr->print(cout,1);
 #endif
 }
 
@@ -263,7 +264,8 @@ void declareProto(const string& name,
   }
 #ifdef DUMP_AST
   if (!f->isDefined())
-    cout << f->str() << endl;
+    f->print(cout);
+  cout << endl;
 #endif
 }
 
@@ -301,7 +303,8 @@ void defineFuncEnd(const string& name,
   symtab = symtab->prev();
   delete old;
 #ifdef DUMP_AST
-  cout << f->str() << endl;
+  f->print(cout);
+  cout << endl;
 #endif
 }
 

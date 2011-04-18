@@ -6,6 +6,7 @@
 #include "Expr.h"
 #include <string>
 #include <vector>
+#include <iostream>
 
 class Func {
 protected:
@@ -27,6 +28,7 @@ public:
   const ParamSymbol *param(unsigned i) const {return (*params)[i];}
   virtual bool isDefined() const = 0;
   virtual std::string str() const;
+  virtual std::ostream& print(std::ostream& os) const;
 };
 
 class ExternFunc : public Func {
@@ -48,6 +50,7 @@ public:
   Expr *body() {return body_;}
   void setBody(Expr *b) {body_ = b;}
   virtual std::string str() const;
+  virtual std::ostream& print(std::ostream& os) const;
 };
 
 #endif // FUNC_H
