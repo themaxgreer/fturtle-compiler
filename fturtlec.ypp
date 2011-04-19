@@ -105,7 +105,7 @@ formal         : type ID  {$$ = new ParamSymbol(*$2,$1);}
 type           : BOOL          {$$ = Type::getBoolType();}
                | INT           {$$ = Type::getIntType();}
                | FLOAT         {$$ = Type::getFloatType();}
-               | type '[' ']'  {$$ = 0; throw("Arrays not implemented!");}
+               | type '[' ']'  {$$ = 0; throw Error("Arrays not implemented!");}
                ;
 
 expr           : expr OR expr  {if (!$1->type()->isBoolType() ||
@@ -174,12 +174,15 @@ expr           : expr OR expr  {if (!$1->type()->isBoolType() ||
                                        throw Error("Var '" + *$1 + 
 						   "' undefined");
                                      $$ = new VarExpr(sym);}
-               | expr '[' expr ']'  {$$ = 0; throw("Arrays not implemented!");}
-               | LENGTH expr        {$$ = 0; throw("Arrays not implemented!");}
+               | expr '[' expr ']'  {$$ = 0; 
+                                     throw Error("Arrays not implemented!");}
+               | LENGTH expr        {$$ = 0; 
+                                     throw Error("Arrays not implemented!");}
                | BOOL_LIT           {$$ = new BoolConstExpr($1);}  
                | INT_LIT            {$$ = new IntConstExpr($1);}
                | FLOAT_LIT          {$$ = new FloatConstExpr($1);}
-               | array_lit          {$$ = 0; throw("Arrays not implemented!");}
+               | array_lit          {$$ = 0; 
+                                     throw Error("Arrays not implemented!");}
                | block
                ;
 

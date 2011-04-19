@@ -23,4 +23,4 @@ Func.o: Func.cpp Func.h Symbol.h Type.h Expr.h
 fturtlec: fturtlec.ypp fturtlec.l Type.o Symbol.o Expr.o Func.o Error.h
 	bison -d fturtlec.ypp
 	flex fturtlec.l
-	$(CC) $(COPTS) fturtlec.tab.cpp lex.yy.c Type.o Symbol.o Expr.o Func.o -lfl -o $@
+	$(CC) $(COPTS) fturtlec.tab.cpp lex.yy.c Type.o Symbol.o Expr.o Func.o -lfl -lm -o $@
