@@ -1,8 +1,74 @@
 ;
-; Load and Store
+; LLVM "assembly" as it pertains to our Turtle Compiler
+; see http://llvm.org/docs/LangRef.html for fuller description
+; try out the assembler online at http://llvm.org/demo/index.cgi
+;
+
+;
+; LLVM types
+;
+i1 ....... for bool's
+i32 ...... for (signed, 32-bit) int's
+double ... for (double precision) float's
+
+;
+; layout specified at top of output
+; see http://llvm.org/docs/LangRef.html#datalayout
+;
+target datalayout = "layout specification"
+
+;
+; LLVM register values (value SSA values)
+;
+%0, %1, %2, ..... temporaries (begin at 0 for each function)
+%foo, %bar ...... named function parameters or local values
+6.000000e+00 .... float constants
+42 .............. integer constants
+
+;
+; declaring data constants (outside function)
+;
+@bar = internal constant double 1.600000e+01
+@fred = internal constant i32 1234    
+@flag = internal constant i1 false
+
+;
+; function definitions
+; Labels are unique to each function and mark each "basic block."
+; The first basic block, the entry point, is special in that it
+; can not be the target of a branch.
+; Each basic block ends with with a control flow instruction.
+;
+define [linkage] [visibility] [ret attrs]
+       <ResultType> @<FunctionName> ([argument list])
+       [fn Attrs] [section "name"] [align N]
+       [gc] { ... }
+
+define double @foo(double %x) {
+entry:
+  <list of basic blocks>
+}
+
+;
+; Declaring function prototype
+;
+Examples:
+declare i32 @B(i32)
+declare i32 @rotate(double)
+declare i32 @move(double)
+
+;
+; Load and Store (of global constants)
+; align doubles/ints on 8/4-byte boundaries
 ;
 <result> = load <ty>* <pointer>[, align <alignment>]
 store <ty> <value>, <ty>* <pointer>[, align <alignment>]
+
+Examples:
+store double %1, double* @bar, align 8
+%4 = load double* @bar, align 8 
+%8 = load i32* @fred, align 4              
+%b = load i1* @flag
 
 ;
 ; return, conditional and unconditional branch, 
@@ -11,10 +77,20 @@ ret <type> <value>  ; return value from function
 br i1 <cond>, label <iftrue>, label <iffalse>  ; branch
 br label <dest>   ; Unconditional branch
 
+Examples:
+ret double %7
+ret i32 42
+br i1 %2, label %bb, label %bb1
+br label %bb1
+
+
 ;
 ; function call
 ;
 <result> = [tail] call <ty> [<fnty>*] <fnptrval>(<function args>)
+
+Examples:
+%1 = call double @foo(double 6.450000e+01)
 
 ;
 ; compare
@@ -25,6 +101,7 @@ br label <dest>   ; Unconditional branch
 ;
 ; arithmetic op's
 ; unary op -x is implementation as 0-x
+; each operand is any valid SSA value
 ;
 <result> = add <ty> <op1>, <op2>   
 <result> = fadd <ty> <op1>, <op2>
@@ -44,3 +121,24 @@ br label <dest>   ; Unconditional branch
 ;
 <result> = fptosi <ty> <value> to <ty2>
 <result> = sitofp <ty> <value> to <ty2>
+
+;
+; Since all values are immutable in out language
+; we have no need for "phi instructions" which are
+; typically needed to generate proper SSA code
+;
+<result> = phi <ty> [ <val0>, <label0>], ...
+
+;
+; alloca is used to allocate memory on the stack frame
+; (we try to put everything in registers).
+;
+; If we want the resulting program to be "source code"
+; debuggable, then we would have to make sure all local
+; vars are stored on the stack frame.
+;
+<result> = alloca <type>[, <ty> <NumElements>][, align <alignment>]
+
+Examples
+%x_addr = alloca i32
+%retval = alloca i32
