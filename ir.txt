@@ -12,7 +12,7 @@ i32 ...... for (signed, 32-bit) int's
 double ... for (double precision) float's
 
 ;
-; layout specified at top of output
+; LAYOUT specified at top of output
 ; see http://llvm.org/docs/LangRef.html#datalayout
 ;
 target datalayout = "layout specification"
@@ -26,14 +26,14 @@ target datalayout = "layout specification"
 42 .............. integer constants
 
 ;
-; declaring data constants (outside function)
+; DECLARING DATA CONSTANTS (outside function)
 ;
 @bar = internal constant double 1.600000e+01
 @fred = internal constant i32 1234    
 @flag = internal constant i1 false
 
 ;
-; function definitions
+; FUNCTION DEFINITIONS
 ; Labels are unique to each function and mark each "basic block."
 ; The first basic block, the entry point, is special in that it
 ; can not be the target of a branch.
@@ -50,7 +50,7 @@ entry:
 }
 
 ;
-; Declaring function prototype
+; DECLARING FUNCTION PROTOTYPE
 ;
 Examples:
 declare i32 @B(i32)
@@ -58,8 +58,10 @@ declare i32 @rotate(double)
 declare i32 @move(double)
 
 ;
-; Load and Store (of global constants)
+; LOAD and STORE (of global constants)
 ; align doubles/ints on 8/4-byte boundaries
+; Actually, we should only need load since we only read from
+; these constants.
 ;
 <result> = load <ty>* <pointer>[, align <alignment>]
 store <ty> <value>, <ty>* <pointer>[, align <alignment>]
@@ -71,7 +73,7 @@ store double %1, double* @bar, align 8
 %b = load i1* @flag
 
 ;
-; return, conditional and unconditional branch, 
+; RETURN, CONDITIONAL and UNCONDITIONAL BRANCH, 
 ;
 ret <type> <value>  ; return value from function
 br i1 <cond>, label <iftrue>, label <iffalse>  ; branch
@@ -83,9 +85,8 @@ ret i32 42
 br i1 %2, label %bb, label %bb1
 br label %bb1
 
-
 ;
-; function call
+; FUNCTION CALL
 ;
 <result> = [tail] call <ty> [<fnty>*] <fnptrval>(<function args>)
 
@@ -93,13 +94,13 @@ Examples:
 %1 = call double @foo(double 6.450000e+01)
 
 ;
-; compare
+; COMPARE
 ;
 <result> = icmp <cond> <ty> <op1>, <op2>    
 <result> = fcmp <cond> <ty> <op1>, <op2> 
 
 ;
-; arithmetic op's
+; ARITHMETIC OPERATIONS
 ; unary op -x is implementation as 0-x
 ; each operand is any valid SSA value
 ;
@@ -117,10 +118,20 @@ Examples:
 <result> = frem <ty> <op1>, <op2> 
 
 ;
-; converting between float's and signed integers
+; CONVERTING between float's and signed integers
 ;
 <result> = fptosi <ty> <value> to <ty2>
 <result> = sitofp <ty> <value> to <ty2>
+
+;
+; BITWISE OPERATIONS
+; used for logical or,and,not
+; use "xor i1 1, %flag" for "not flag"
+;
+<result> = or <ty> <op1>, <op2>
+<result> = and <ty> <op1>, <op2>
+<result> = xor <ty> <op1>, <op2>
+
 
 ;
 ; Since all values are immutable in out language

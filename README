@@ -1,0 +1,120 @@
+Turtle Compiler
+CS 452 Project
+W. Cochran, wcochran@vancouver.wsu.edu
+
+Description
+  Compiles "Turle Language" source code into LLVM assembler.
+
+Modification History
+  4/19/2011 (WOC) ..... Initial version is front end only 
+      (currently "pretty prints" AST's).
+      Reads source code from stdin, writes AST's to stdout.
+
+Building
+  Requires g++, bison, flex
+  Use Makefile build 'fturtlec' executable:
+     make
+  To clean up rifraff from build
+     make clean
+  To clean up build rifraff and delete executable
+     make clobber
+     
+Workflow using GIT repo
+  The project is under version control using GIT and the
+  repository is stored in the .git subdirectory.
+  (1) edit files 
+  (2) build with make and test
+  (3) when ready to save snapshot to GIT repo do the following
+      make clobber   # get rid of rifraff (should create .gitignore file)
+      git add .      # add new and modified files to index
+      git status     # check status of index
+      git commit -m "description of modification"   # commit changes to repo
+  See http://www.kernel.org/pub/software/scm/git/docs/gittutorial.html
+  for tutorial on GIT
+
+TODO:
+  Instead of outputting AST, modify so that program output 
+  LLVM source assembly code.
+  Two choices:
+    (A) We could generate assembly code using the LLVM tools
+       following the example at http://llvm.org/docs/tutorial/index.html, or
+    (B) Generate LLVM assembly code completely by ourselves from scratch.
+       I will assume this later choice.
+
+  (1) Create Value base class (Value.{h,cpp}) that represents
+      an "LLVM SSA register" where are akin to "addresses" 
+      in three address code. Each value represents one of
+      the following
+         (a) a name (e.g., %foo, %bar),
+         (b) a constant (e.g., 6.0000e+00, 42),
+         (c) a compiler generated temporary (%0, %1, ...;
+             begin with %0 for each function);
+      Create three concrete subclasses for each case above.
+      The Value class should have a str() method that
+      returns the string representation of the object
+      suitable for a LLVM register.
+      Instances of the Temporary class should create a unique
+      sequence of temporary values -- this should be "resettable."
+
+  (2) Create a Label class (Label.{h,cpp}) to represent
+      instruction addresses (targets of branch instructions).
+      This should be generate unique labels (e.g., bb0, bb1, etc..).
+
+  (3) Add the following pure virtual method to Expr base class for 
+     code generation:
+
+     //
+     // Generate code that evaluates the expression and returns
+     // the "value" holding the result.
+     // Value objects are LLVM SSA "virtual registers" akin to
+     // "addresses" in three address code.
+     //
+     virtual Value *genCode() = 0;
+
+    Note that we won't generate flow control code for boolean
+    short circuit evaluation (at least in the first working version)
+    since that would require "phi operations" for proper SSA code.
+
+  (5) Implement genCode for each concrete subclass.
+
+  (4) Add the following pure virtual method to the Func base class
+    for generating code:
+
+     //
+     // Generate LLVM Assembly Code for function declaration
+     // or function definition (see concrete subclasses).
+     //
+     virtual void genCode() = 0;
+
+     Implement this method for each concrete subclass.
+
+  (5) Use your code generation routines to create the LLVM assembler
+      output. The points where you see DUMP_AST are likely
+      points where you should be writing assembly output.
+      We will want to declare all the external turtle functions
+      needed (assume they al; return an 'int')
+
+       declare i32 @home()
+       declare i32 @pushstate()
+       declare i32 @popstate()
+       declare i32 @pendown(i1)    ; bool argument
+       declare i32 @rotate(double)
+       declare i32 @move(double)
+
+
+Table of Contents
+
+README .............. This file.
+Makefile ............ builds fturtlec executable
+Error.h ............. Exception class for error reporting
+Type.{h,cpp} ........ Classes for representing variable types
+Symbol.{h,cpp} ...... Symbol classes and Symbol Table class
+Expr.{h,cpp} ........ Expression AST classes
+Func.{h,cpp} ........ Function AST classes
+fturtlec.l .......... Lexical analyzer (flex source)
+fturtlec.ypp ........ parser/code and generator (main() here, bison source)
+ir.txt .............. useful LLVM IR instructions overview for this project
+sierpinski.turtle ... Sample input file
+sierpinski.ll ....... Example LLVM assembly file
+.git ................ GIT repo
+
