@@ -27,7 +27,6 @@ public:
   unsigned numParams() const {return (params == 0) ? 0 : params->size();}
   const ParamSymbol *param(unsigned i) const {return (*params)[i];}
   virtual bool isDefined() const = 0;
-  virtual std::string str() const;
   virtual std::ostream& print(std::ostream& os) const;
 };
 
@@ -49,7 +48,6 @@ public:
   virtual bool isDefined() const {return body_ != 0;}
   Expr *body() {return body_;}
   void setBody(Expr *b) {body_ = b;}
-  virtual std::string str() const;
   virtual std::ostream& print(std::ostream& os) const;
 };
 

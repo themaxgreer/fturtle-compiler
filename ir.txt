@@ -1,13 +1,31 @@
-; shouldn't need these (maybe for loading global constants?)
+;
+; Load and Store
+;
 <result> = load <ty>* <pointer>[, align <alignment>]
 store <ty> <value>, <ty>* <pointer>[, align <alignment>]
 
+;
+; return, conditional and unconditional branch, 
+;
 ret <type> <value>  ; return value from function
 br i1 <cond>, label <iftrue>, label <iffalse>  ; branch
 br label <dest>   ; Unconditional branch
 
+;
+; function call
+;
 <result> = [tail] call <ty> [<fnty>*] <fnptrval>(<function args>)
 
+;
+; compare
+;
+<result> = icmp <cond> <ty> <op1>, <op2>    
+<result> = fcmp <cond> <ty> <op1>, <op2> 
+
+;
+; arithmetic op's
+; unary op -x is implementation as 0-x
+;
 <result> = add <ty> <op1>, <op2>   
 <result> = fadd <ty> <op1>, <op2>
 <result> = sub <ty> <op1>, <op2>  
@@ -19,6 +37,10 @@ br label <dest>   ; Unconditional branch
 <result> = sdiv <ty> <op1>, <op2>  
 <result> = fdiv <ty> <op1>, <op2>
 <result> = srem <ty> <op1>, <op2>  
+<result> = frem <ty> <op1>, <op2> 
 
-<result> = icmp <cond> <ty> <op1>, <op2>    
-<result> = fcmp <cond> <ty> <op1>, <op2> 
+;
+; converting between float's and signed integers
+;
+<result> = fptosi <ty> <value> to <ty2>
+<result> = sitofp <ty> <value> to <ty2>

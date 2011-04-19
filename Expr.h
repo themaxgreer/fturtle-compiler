@@ -20,7 +20,6 @@ public:
   Expr(Type *t) : type_(t) {}
   virtual ~Expr() {if (!type_->isBasicType()) delete type_;}
   Type *type() {return type_;}
-  virtual std::string str() const = 0;
   virtual std::ostream& print(std::ostream& os, unsigned level) const = 0;
 };
 
@@ -38,9 +37,9 @@ class BoolLitExpr : public BoolExpr {
   const bool b;
 public:
   BoolLitExpr(bool v) : b(v) {}
-  virtual std::string str() const {return b ? "true" : "false";}
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
-    return indent(os,level) << str() << std::endl;
+    const bool v = b ? "true" : "false";
+    return indent(os,level) << v << std::endl;
   }
 };
 
@@ -50,9 +49,6 @@ class OrExpr : public BoolExpr {
 public:
   OrExpr(Expr *l, Expr *r) : BoolExpr(), left(l), right(r) {}
   virtual ~OrExpr() {delete left; delete right;}
-  virtual std::string str() const {
-    return "or(" + left->str() + ", " + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "or" << std::endl;
     left->print(os,level+1);
@@ -66,9 +62,6 @@ class AndExpr : public BoolExpr {
 public:
   AndExpr(Expr *l, Expr *r) : BoolExpr(), left(l), right(r) {}
   virtual ~AndExpr() {delete left; delete right;}
-  virtual std::string str() const {
-    return "and(" + left->str() + ", " + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "and" << std::endl;
     left->print(os,level+1);
@@ -81,9 +74,6 @@ class NotExpr : public BoolExpr {
 public:
   NotExpr(Expr *e) : BoolExpr(), expr(e) {}
   virtual ~NotExpr() {delete expr;}
-  virtual std::string str() const {
-    return "not(" + expr->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "not" << std::endl;
     return expr->print(os,level+1);
@@ -108,9 +98,6 @@ public:
 class EQExpr : public CmpExpr {
 public:
   EQExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "eq(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("EQ",os,level);
   }
@@ -119,9 +106,6 @@ public:
 class NEExpr : public CmpExpr {
 public:
   NEExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "ne(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("NE",os,level);
   }
@@ -130,9 +114,6 @@ public:
 class LTExpr : public CmpExpr {
 public:
   LTExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "lt(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("LT",os,level);
   }
@@ -141,9 +122,6 @@ public:
 class LEExpr : public CmpExpr {
 public:
   LEExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "le(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("LE",os,level);
   }
@@ -152,9 +130,6 @@ public:
 class GTExpr : public CmpExpr {
 public:
   GTExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "gt(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("GT",os,level);
   }
@@ -163,9 +138,6 @@ public:
 class GEExpr : public CmpExpr {
 public:
   GEExpr(Expr *l, Expr *r) : CmpExpr(l, r) {}
-  virtual std::string str() const {
-    return "ge(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("GE",os,level);
   }
@@ -175,11 +147,8 @@ class IntLitExpr : public ArithExpr {
   const int i;
 public:
   IntLitExpr(int v) : ArithExpr(Type::getIntType()), i(v) {}
-  virtual std::string str() const {
-    std::stringstream ss; ss << i; return ss.str();
-  }
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
-    return indent(os,level) << str() << std::endl;
+    return indent(os,level) << i << std::endl;
   }
 };
 
@@ -187,11 +156,8 @@ class FloatLitExpr : public ArithExpr {
   const double f;
 public:
   FloatLitExpr(double v) : ArithExpr(Type::getFloatType()), f(v) {}
-  virtual std::string str() const {
-    std::stringstream ss; ss << f; return ss.str();
-  }
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
-    return indent(os,level) << str() << std::endl;
+    return indent(os,level) << f << std::endl;
   }
 };
 
@@ -213,9 +179,6 @@ public:
 class AddExpr : public ArithBinExpr {
 public:
   AddExpr(Expr *l, Expr *r) : ArithBinExpr(l,r) {}
-  virtual std::string str() const {
-    return "add(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("ADD",os,level);
   }
@@ -224,9 +187,6 @@ public:
 class SubExpr : public ArithBinExpr {
 public:
   SubExpr(Expr *l, Expr *r) : ArithBinExpr(l,r) {}
-  virtual std::string str() const {
-    return "sub(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("SUB",os,level);
   }
@@ -235,9 +195,6 @@ public:
 class MulExpr : public ArithBinExpr {
 public:
   MulExpr(Expr *l, Expr *r) : ArithBinExpr(l,r) {}
-  virtual std::string str() const {
-    return "mul(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("MUL",os,level);
   }
@@ -246,9 +203,6 @@ public:
 class DivExpr : public ArithBinExpr {
 public:
   DivExpr(Expr *l, Expr *r) : ArithBinExpr(l,r) {}
-  virtual std::string str() const {
-    return "div(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("DIV",os,level);
   }
@@ -257,9 +211,6 @@ public:
 class RemExpr : public ArithBinExpr {
 public:
   RemExpr(Expr *l, Expr *r) : ArithBinExpr(l,r) {}
-  virtual std::string str() const {
-    return "rem(" + left->str() + "," + right->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("REM",os,level);
   }
@@ -269,9 +220,6 @@ class IntToFloatExpr : public ArithExpr {
   Expr *expr;
 public:
   IntToFloatExpr(Expr *e) : ArithExpr(Type::getFloatType()), expr(e) {}
-  virtual std::string str() const {
-    return "itof(" + expr->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "ITOF" << std::endl;
     return expr->print(os,level+1);
@@ -282,9 +230,6 @@ class FloatToIntExpr : public ArithExpr {
   Expr *expr;
 public:
   FloatToIntExpr(Expr *e) : ArithExpr(Type::getIntType()), expr(e) {}
-  virtual std::string str() const {
-    return "ftoi(" + expr->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "FTOI" << std::endl;
     return expr->print(os,level+1);
@@ -295,9 +240,6 @@ class NegExpr : public ArithExpr {
   Expr *expr;
 public:
   NegExpr(Expr *e) : ArithExpr(e->type()), expr(e) {}
-  virtual std::string str() const {
-    return "neg(" + expr->str() + ")";
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "NEG" << std::endl;
     return expr->print(os,level+1);
@@ -311,11 +253,6 @@ class IfExpr : public Expr {
 public:
   IfExpr(Expr *c, Expr *t, Expr *e)
     : Expr(t->type()), cond(c), then_(t), else_(e) {}
-  virtual std::string str() const {
-    return 
-      "if(" + cond->str() + ", " + 
-      then_->str() + ", " + else_->str() + ")";
-  }
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << "IF" << std::endl;
     cond->print(os,level+1);
@@ -330,9 +267,6 @@ class LexicalInitExpr : public Expr {
 public:
   LexicalInitExpr(const std::string& n, Expr *e) 
     : Expr(e->type()), ident(n), expr(e) {}
-  virtual std::string str() const {
-    return ident + "=" + expr->str();
-  };
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << ident << "=" << std::endl;
     return expr->print(os,level+1);
@@ -345,7 +279,6 @@ class LetExpr : public Expr {
 public:
   LetExpr(std::vector<Expr*> *l, Expr *b) :
     Expr(b->type()), lexicalExprs(l), body(b) {}
-  virtual std::string str() const;
   virtual std::ostream& print(std::ostream& os, unsigned level) const;
 };
 
@@ -355,7 +288,6 @@ class FuncCallExpr : public Expr {
 public:
   FuncCallExpr(Type *retType, const std::string& n, std::vector<Expr*>* a) 
     : Expr(retType), name(n), args(a) {}
-  virtual std::string str() const;
   virtual std::ostream& print(std::ostream& os, unsigned level) const;
 };
 
@@ -363,7 +295,6 @@ class VarExpr : public Expr {
   Symbol *sym;
 public:
   VarExpr(Symbol *s) : Expr(s->type()), sym(s) {}
-  virtual std::string str() const {return sym->str();}
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return indent(os,level) << sym->str() << std::endl;
   }
@@ -374,7 +305,6 @@ class BlockExpr : public Expr {
 public:
   BlockExpr(std::vector<Expr*> *list) 
     : Expr(list->back()->type()), exprList(list) {}
-  virtual std::string str() const;
   virtual std::ostream& print(std::ostream& os, unsigned level) const;
 };
 
