@@ -176,9 +176,9 @@ expr           : expr OR expr  {if (!$1->type()->isBoolType() ||
                                      $$ = new VarExpr(sym);}
                | expr '[' expr ']'  {$$ = 0; throw("Arrays not implemented!");}
                | LENGTH expr        {$$ = 0; throw("Arrays not implemented!");}
-               | BOOL_LIT           {$$ = new BoolLitExpr($1);}  
-               | INT_LIT            {$$ = new IntLitExpr($1);}
-               | FLOAT_LIT          {$$ = new FloatLitExpr($1);}
+               | BOOL_LIT           {$$ = new BoolConstExpr($1);}  
+               | INT_LIT            {$$ = new IntConstExpr($1);}
+               | FLOAT_LIT          {$$ = new FloatConstExpr($1);}
                | array_lit          {$$ = 0; throw("Arrays not implemented!");}
                | block
                ;
@@ -224,12 +224,27 @@ void defineConstant(const string& name, Expr *expr) {
   Symbol *sym = symtab->get(name);
   if (sym != 0)
     throw Error("constant '" + name + "' already defined");
-  sym = new ConstantSymbol(name, expr->type());
-  symtab->put(name, sym);
+  Type *type = expr->type();
+  if (type->isBoolType()) {
+    const bool b = expr->boolValue();
+    sym = new ConstBoolSymbol(name,b);
 #ifdef DUMP_AST
-  cout << name << "=" << endl;
-  expr->print(cout,1);
+    cout << name << "=" << b << endl;
 #endif
+  } else if (type->isIntType()) {
+    const int i = expr->intValue();
+    sym = new ConstIntSymbol(name,i);
+#ifdef DUMP_AST
+    cout << name << "=" << i << endl;
+#endif
+  } else {
+    const double f = expr->floatValue();
+    sym = new ConstFloatSymbol(name,f);
+#ifdef DUMP_AST
+    cout << name << "=" << f << endl;
+#endif
+  }
+  symtab->put(name, sym);
 }
 
 void checkSignature(Func *f,

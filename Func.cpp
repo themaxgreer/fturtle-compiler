@@ -19,7 +19,7 @@ ostream& UserFunc::print(ostream& os) const  {
   Func::print(os);
   if (body_ != 0) {
     os << " {" << endl; 
-    body_->print(os,1) << endl;
+    body_->print(os,1);
     os << "}" << endl;
   }
   return os;

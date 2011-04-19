@@ -2,6 +2,7 @@
 #define SYMBOL_H
 
 #include "Type.h"
+#include <sstream>
 #include <string>
 #include <map>
 
@@ -13,6 +14,7 @@ public:
   const std::string& name() const {return name_;}
   Type *type() const {return type_;}
   virtual ~Symbol() {}
+  virtual bool isConst() const {return false;}
   virtual std::string str() const {return name();}
 };
 
@@ -26,9 +28,48 @@ public:
   LexicalSymbol(const std::string& n, Type *t) : Symbol(n,t) {}
 };
 
-class ConstantSymbol : public Symbol {
+class ConstSymbol : public Symbol {
 public:
-  ConstantSymbol(const std::string& n, Type *t) : Symbol(n,t) {}
+  ConstSymbol(const std::string& n, Type *t) : Symbol(n,t) {}
+  virtual bool isConst() const {return true;}
+};
+
+class ConstBoolSymbol : public ConstSymbol {
+  const bool val;
+public:
+  ConstBoolSymbol(const std::string& n, bool v) 
+    : ConstSymbol(n, Type::getBoolType()), val(v) {} 
+  bool value() const {return val;}
+  virtual std::string str() const {
+    const std::string& s = val ? "true" : "false";
+    return name() + "(=" + s + ")";
+  }
+};
+
+class ConstIntSymbol : public ConstSymbol {
+  const int val;
+public:
+  ConstIntSymbol(const std::string& n, int v) 
+    : ConstSymbol(n, Type::getIntType()), val(v) {} 
+  int value() const {return val;}
+  virtual std::string str() const {
+    std::stringstream ss;
+    ss << name() << "(=" << val << ")";
+    return ss.str();
+  }
+};
+
+class ConstFloatSymbol : public ConstSymbol {
+  const double val;
+public:
+  ConstFloatSymbol(const std::string& n, double v) 
+    : ConstSymbol(n, Type::getFloatType()), val(v) {} 
+  double value() const {return val;}
+  virtual std::string str() const {
+    std::stringstream ss;
+    ss << name() << "(=" << val << ")";
+    return ss.str();
+  }
 };
 
 class SymbolTable {

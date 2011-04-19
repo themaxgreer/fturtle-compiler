@@ -12,29 +12,31 @@
 #
 
 max_depth = 5
+pi = 3.1415926
+dist = pi/2
 
-int B(int depth, float dist);
+int B(int depth);
 
-int A(int depth, float dist) {  # rule A -> B-A-B
+int A(int depth) {  # rule A -> B-A-B
   if (depth > 0)
     let (d = depth-1) {
-      B(d,dist); rotate(-60);
-      A(d,dist); rotate(-60);
-      B(d,dist)
+      B(d); rotate(-60);
+      A(d); rotate(-60);
+      B(d)
     }
   else move(dist)
 }
 
-int B(int depth, float dist) { # B -> A+B+A
+int B(int depth) { # B -> A+B+A
   if (depth > 0)
     let (d = depth-1) {
-      A(d,dist); rotate(60);
-      B(d,dist); rotate(60);
-      A(d,dist)
+      A(d); rotate(60);
+      B(d); rotate(60);
+      A(d)
     } 
   else move(dist)
 }
 
-int tmain() {A(6,1)}  # start symbol A
+int tmain() {A(max_depth)}  # start symbol A
        
       

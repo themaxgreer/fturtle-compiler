@@ -1,13 +1,47 @@
 #include "Expr.h"
+#include "Symbol.h"
 #include <sstream>
 
 using namespace std;
 
-ostream&  LetExpr::print(ostream& os, unsigned level) const {
+bool IfExpr::boolValue() const {
+  if (cond->boolValue())
+    return then_->boolValue();
+  return else_->boolValue();
+}
+
+int IfExpr::intValue() const {
+  if (cond->boolValue())
+    return then_->intValue();
+  return else_->intValue();
+}
+
+double IfExpr::floatValue() const {
+  if (cond->boolValue())
+    return then_->floatValue();
+  return else_->floatValue();
+}
+
+bool VarExpr::boolValue() const {
+  ConstBoolSymbol *s = static_cast<ConstBoolSymbol*>(sym);
+  return s->value();
+}
+
+int VarExpr::intValue() const {
+  ConstIntSymbol *s = static_cast<ConstIntSymbol*>(sym);
+  return s->value();
+}
+
+double VarExpr::floatValue() const {
+  ConstFloatSymbol *s = static_cast<ConstFloatSymbol*>(sym);
+  return s->value();
+}
+
+ostream& LetExpr::print(ostream& os, unsigned level) const {
   indent(os,level) << "LET(" << endl;
   const unsigned n = lexicalExprs->size();
   for (unsigned i = 0; i < n; i++)
-    (*lexicalExprs)[i]->print(os, level+1) << endl;
+    (*lexicalExprs)[i]->print(os, level+1);
   indent(os,level) << ")" << endl;
   return body->print(os,level+1);
 }
