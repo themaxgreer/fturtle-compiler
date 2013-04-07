@@ -20,7 +20,13 @@ Symbol.o: Symbol.cpp Symbol.h Type.h
 Expr.o: Expr.cpp Expr.h Type.h Symbol.h
 Func.o: Func.cpp Func.h Symbol.h Type.h Expr.h
 
+ifeq "$(shell uname)" "Darwin"
+LIBS=-lm
+else
+LIBS=-lfl -lm
+endif
+
 fturtlec: fturtlec.ypp fturtlec.l Type.o Symbol.o Expr.o Func.o Error.h
 	bison -d fturtlec.ypp
 	flex fturtlec.l
-	$(CC) $(COPTS) fturtlec.tab.cpp lex.yy.c Type.o Symbol.o Expr.o Func.o -lfl -lm -o $@
+	$(CC) $(COPTS) fturtlec.tab.cpp lex.yy.c Type.o Symbol.o Expr.o Func.o $(LIBS) -o $@

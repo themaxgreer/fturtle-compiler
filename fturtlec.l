@@ -12,6 +12,7 @@ using namespace std;
 map<string,string*> namePool;
 %}
 %option nounput
+%option noyywrap
 %%
 [0-9]+                  {yylval.i = atoi(yytext); return INT_LIT;}
 [0-9]+\.[0-9]+          {yylval.f = atof(yytext); return FLOAT_LIT;}

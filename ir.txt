@@ -13,7 +13,7 @@ double ... for (double precision) float's
 
 ;
 ; LAYOUT specified at top of output
-; see http://llvm.org/docs/LangRef.html#datalayout
+; see http://llvm.org/docs/LangRef.html#data-layout
 ;
 target datalayout = "layout specification"
 
@@ -132,21 +132,16 @@ Examples:
 <result> = and <ty> <op1>, <op2>
 <result> = xor <ty> <op1>, <op2>
 
-
 ;
-; Since all values are immutable in out language
-; we have no need for "phi instructions" which are
-; typically needed to generate proper SSA code
+; Since all values are immutable in our language
+; we only need SSA "phi instructions" for if/else 
+; expressions.
 ;
 <result> = phi <ty> [ <val0>, <label0>], ...
 
 ;
 ; alloca is used to allocate memory on the stack frame
 ; (we try to put everything in registers).
-;
-; If we want the resulting program to be "source code"
-; debuggable, then we would have to make sure all local
-; vars are stored on the stack frame.
 ;
 <result> = alloca <type>[, <ty> <NumElements>][, align <alignment>]
 

@@ -1,0 +1,8 @@
+*~
+*.o
+*.dSYM
+core
+*.tab.*
+*.gch
+lex.yy.c
+fturtlec
