@@ -24,8 +24,14 @@ public:
 };
   
 class LexicalSymbol : public Symbol {
+	/* Deleted spec suggestion, only can make it work using
+	* original Symbol.h */
+	//std::string alias; 
+       //replacement name for symbol
 public:
   LexicalSymbol(const std::string& n, Type *t) : Symbol(n,t) {}
+ // virtual std::string str() const { return alias; }
+  //void setAlias(const std::string& a) { alias = a; }
 };
 
 class ConstSymbol : public Symbol {
@@ -81,5 +87,7 @@ public:
   void put(const std::string& name, Symbol *sym) {tbl[name] = sym;}
   Symbol *get(const std::string& name);
 };
+
+extern SymbolTable *symtab;
 
 #endif // SYMBOL_H

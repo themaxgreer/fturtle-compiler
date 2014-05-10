@@ -1,0 +1,50 @@
+segment_length = 195
+angle = 10
+max_depth = 8
+scale_factor = 0.95
+
+int B(int depth, float scale);
+
+#
+# A -> A[-B][+B]
+#
+int A(int depth, float scale) {
+  if (depth > 0)
+    let (d = depth-1, s = scale_factor*scale) {
+      A(d, s); 
+      pushstate();
+      rotate(-angle);
+      B(d, scale_factor*s);
+      popstate();
+      pushstate();
+      rotate(angle);
+      B(d, scale_factor*scale_factor*s);
+      popstate()
+    }
+  else
+    move(scale*segment_length)
+}
+
+#
+# B -> A[-B]A[+A]
+#
+int B(int depth, float scale) {
+  if (depth > 0)
+    let (d = depth-1, s = scale_factor*scale) {
+      A(d, s); 
+      pushstate();
+      rotate(-angle);
+      B(d, scale_factor*s);
+      popstate();
+      A(d, scale_factor*scale_factor*s);
+      pushstate();
+      rotate(angle);
+      A(d, scale_factor*scale_factor*scale_factor*s);
+      popstate()
+    }
+  else
+    move(scale*segment_length)
+}
+
+int tmain() {A(max_depth, 1.0)}  # start symbol A
+

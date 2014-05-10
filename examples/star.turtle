@@ -1,0 +1,32 @@
+sqrt3_2 = 0.86602540378
+
+int tmain() {
+  pendown(false);
+  rotate(90.0);
+  move(sqrt3_2);
+  pendown(true);
+  rotate(150.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0);
+  rotate(60.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0);
+  rotate(60.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0);
+  rotate(60.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0);
+  rotate(60.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0);
+  rotate(60.0);
+  move(1.0);
+  rotate(-120.0);
+  move(1.0)
+}

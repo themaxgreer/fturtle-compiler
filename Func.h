@@ -28,6 +28,7 @@ public:
   const ParamSymbol *param(unsigned i) const {return (*params)[i];}
   virtual bool isDefined() const = 0;
   virtual std::ostream& print(std::ostream& os) const;
+  virtual void genCode(std::ostream &os) const = 0;
 };
 
 class ExternFunc : public Func {
@@ -36,6 +37,7 @@ public:
 	     Type *t, std::vector<ParamSymbol*> *p=0) 
     : Func(n,t,p) {}
   virtual bool isDefined() const {return true;}
+  virtual void genCode(std::ostream& os) const {}
 };
 
 class UserFunc : public Func {
@@ -49,6 +51,7 @@ public:
   Expr *body() {return body_;}
   void setBody(Expr *b) {body_ = b;}
   virtual std::ostream& print(std::ostream& os) const;
+  virtual void genCode(std::ostream& os) const;
 };
 
 #endif // FUNC_H

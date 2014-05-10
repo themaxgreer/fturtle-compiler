@@ -1,27 +1,33 @@
-Turtle Compiler
-CS 452 Project
+Name: Max Greer
+WSUID: 10669729
+Email: themaxgreer@gmail.com
+Project: Turtle Compiler
+
+
+-------------------------------------------------------------------------
+Original AST work by:
 W. Cochran, wcochran@vancouver.wsu.edu
 
+-------------------------------------------------------------------------
 Description
   Compiles "Turle Language" source code into LLVM assembler.
 
-Modification History
-  4/19/2011 (WOC) ..... Initial version is front end only 
-      (currently "pretty prints" AST's).
-      Reads source code from stdin, writes AST's to stdout.
-  4/7/2013 (WOC) ... updated.
-
 Building
   Requires g++, bison, flex
-  Use Makefile build 'fturtlec' executable:
+-  Use Makefile build 'fturtlec' executable:
      make
-  To clean up rifraff from build
+-  To create a Turtle Graphics image:
+     ./fturtlec < *.turtle > *.ll
+     llc *.ll -o *.s
+     gcc -g -Wall fturtlerts.c *.s -o <exe>
+     ./<exe> | turtle.pl > *.ppm
+             where * and <exe> are names that you choose
+
+-  To clean up rifraff from build
      make clean
-  To clean up build rifraff and delete executable
+-  To clean up build rifraff and executable
      make clobber
      
-TODO:
-  Add LLVM IR code generation (in place of pretty-printing AST's).
 Table of Contents
 
 README .............. This file.
@@ -29,13 +35,16 @@ Makefile ............ builds fturtlec executable
 Error.h ............. Exception class for error reporting
 Type.{h,cpp} ........ Classes for representing variable types
 Symbol.{h,cpp} ...... Symbol classes and Symbol Table class
-Expr.{h,cpp} ........ Expression AST classes
-Func.{h,cpp} ........ Function AST classes
+Expr.{h,cpp} ........ Expression classes used for printing correct SSA code
+Func.{h,cpp} ........ Function classes used for printing correct SSA code
+Value.{h,cpp}........ Classes for representing values for SSA code
+Label.{h,cpp}........ Classes for represent labels for blocks/assignments in SSA
 fturtlec.l .......... Lexical analyzer (flex source)
 fturtlec.ypp ........ parser/code and generator (main() here, bison source)
+fturtlerts.c ........ Turtle compiler run time system code
+turtle.pl ........... Perl script to translate turtle commands
 grammar.y............ bare yacc/bison grammar
 ir.txt .............. useful LLVM IR instructions overview for this project
-sierpinski.turtle ... Sample input file
-sierpinski.ll ....... Example LLVM assembly file
+./examples .........  folder with example .turtle files
 .git ................ GIT repo
 

@@ -9,6 +9,8 @@
 #include "Type.h"
 #include "Symbol.h"
 #include "Error.h"
+#include "Label.h"
+#include "Value.h"
 
 inline std::ostream& indent(std::ostream& os, unsigned n) {
   for (unsigned i = 0; i < n; i++)
@@ -21,11 +23,12 @@ class Expr {
 public:
   Expr(Type *t) : type_(t) {}
   virtual ~Expr() {if (!type_->isBasicType()) delete type_;}
-  Type *type() {return type_;}
+  Type *type() const {return type_;}
   virtual bool boolValue() const {return false;}
   virtual int intValue() const {return 0;}
   virtual double floatValue() const {return 0.0;}
   virtual std::ostream& print(std::ostream& os, unsigned level) const = 0;
+  virtual Value *genCode(std::ostream &os) const { return 0;}
 };
 
 class BoolExpr : public Expr {
@@ -47,6 +50,7 @@ public:
     const bool v = b ? "true" : "false";
     return indent(os,level) << v << std::endl;
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class OrExpr : public BoolExpr {
@@ -63,6 +67,7 @@ public:
     left->print(os,level+1);
     return right->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class AndExpr : public BoolExpr {
@@ -79,6 +84,7 @@ public:
     left->print(os,level+1);
     return right->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class NotExpr : public BoolExpr {
@@ -91,6 +97,7 @@ public:
     indent(os,level) << "not" << std::endl;
     return expr->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class CmpExpr : public BoolExpr {
@@ -106,6 +113,7 @@ public:
     left->print(os,level+1);
     return right->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const { return 0; }
 };
 
 class EQExpr : public CmpExpr {
@@ -119,6 +127,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("EQ",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class NEExpr : public CmpExpr {
@@ -132,6 +141,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("NE",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class LTExpr : public CmpExpr {
@@ -145,6 +155,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("LT",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class LEExpr : public CmpExpr {
@@ -158,6 +169,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("LE",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class GTExpr : public CmpExpr {
@@ -171,6 +183,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("GT",os,level);
   }
+   virtual Value *genCode(std::ostream &os) const;
 };
 
 class GEExpr : public CmpExpr {
@@ -184,6 +197,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return CmpExpr::print("GE",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class IntConstExpr : public ArithExpr {
@@ -194,6 +208,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return indent(os,level) << i << std::endl;
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class FloatConstExpr : public ArithExpr {
@@ -204,6 +219,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return indent(os,level) << f << std::endl;
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class ArithBinExpr : public ArithExpr {
@@ -219,6 +235,7 @@ public:
     left->print(os,level+1);
     return right->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const = 0;
 };
 
 class AddExpr : public ArithBinExpr {
@@ -233,6 +250,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("ADD",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const; 
 };
 
 class SubExpr : public ArithBinExpr {
@@ -247,6 +265,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("SUB",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const; 
 };
 
 class MulExpr : public ArithBinExpr {
@@ -261,6 +280,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("MUL",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class DivExpr : public ArithBinExpr {
@@ -275,6 +295,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("DIV",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class RemExpr : public ArithBinExpr {
@@ -289,6 +310,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return ArithBinExpr::print("REM",os,level);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class IntToFloatExpr : public ArithExpr {
@@ -300,6 +322,7 @@ public:
     indent(os,level) << "ITOF" << std::endl;
     return expr->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class FloatToIntExpr : public ArithExpr {
@@ -311,6 +334,7 @@ public:
     indent(os,level) << "FTOI" << std::endl;
     return expr->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class NegExpr : public ArithExpr {
@@ -327,6 +351,7 @@ public:
     indent(os,level) << "NEG" << std::endl;
     return expr->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class IfExpr : public Expr {
@@ -345,18 +370,20 @@ public:
     then_->print(os,level+1);
     return else_->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class LexicalInitExpr : public Expr {
   const std::string& ident;
   Expr *expr;
 public:
-  LexicalInitExpr(const std::string& n, Expr *e) 
+  LexicalInitExpr(const std::string& n, Expr *e)
     : Expr(e->type()), ident(n), expr(e) {}
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     indent(os,level) << ident << "=" << std::endl;
     return expr->print(os,level+1);
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class LetExpr : public Expr {
@@ -378,6 +405,7 @@ public:
     return 0.0;
   }
   virtual std::ostream& print(std::ostream& os, unsigned level) const;
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class FuncCallExpr : public Expr {
@@ -399,6 +427,7 @@ public:
     return 0.0;
   }
   virtual std::ostream& print(std::ostream& os, unsigned level) const;
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class VarExpr : public Expr {
@@ -411,6 +440,7 @@ public:
   virtual std::ostream& print(std::ostream& os, unsigned level) const {
     return indent(os,level) << sym->str() << std::endl;
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 class BlockExpr : public Expr {
@@ -431,6 +461,7 @@ public:
     throw Error("block expressions can not be statically evaluated");
     return 0.0;
   }
+  virtual Value *genCode(std::ostream &os) const;
 };
 
 #endif // EXPR_H

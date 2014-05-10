@@ -12,14 +12,14 @@
 #include <cstdio>
 #include <cstdlib>
 
-#define DUMP_AST
+//#define DUMP_AST
 
 using namespace std;
 
 void yyerror(const char *msg);
 int yylex();
 
-SymbolTable *symtab;
+//SymbolTable *symtab;
 map<string,Func*> functions;
 
 void defineConstant(const string& name, Expr *expr);
@@ -401,6 +401,18 @@ int main(int argc, char *argv[]) {
   yyin = stdin;
   try {
     yyparse();
+    /* Place function prototypes from main above */
+    cout << "declare i32 @home()" << endl;
+    cout << "declare i32 @pushstate()" << endl;
+    cout << "declare i32 @popstate()" << endl;
+    cout << "declare i32 @pendown(i1 %flag)" << endl;
+    cout << "declare i32 @move(double %dist)" << endl;
+    cout << "declare i32 @rotate(double %angle)" << endl;
+    cout << endl;
+    /* iterate through the functions */
+    for (auto it = functions.begin(); it != functions.end(); ++it) {
+			(*it).second->genCode(std::cout);
+    }
   } catch (Error err) {
     yyerror(err.message().c_str());
   }

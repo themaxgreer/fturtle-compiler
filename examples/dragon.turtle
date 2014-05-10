@@ -1,0 +1,42 @@
+#
+# Dragon curve
+#
+# L-System:
+#  start: FX
+#  rules:
+#     X -> X+YF
+#     Y -> FX-Y
+#  semantics:
+#     F means draw forward
+#     + and - mean turn left/right by 90 degrees
+#     X and Y have no drawing action
+#
+
+maxdepth = 13
+dist = 1.0
+
+int Y(int depth);
+
+int X(int depth) {
+  if (depth > 0) {
+    X(depth-1);
+    rotate(+90);
+    Y(depth-1);
+    move(dist)
+  } else 0
+}
+
+int Y(int depth) {
+  if (depth > 0) {
+    move(dist);
+    X(depth-1);
+    rotate(-90);
+    Y(depth-1)
+  } else 0
+}
+
+int tmain() {
+  pendown(true);
+  move(dist);
+  X(maxdepth)
+}

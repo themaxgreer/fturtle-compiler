@@ -1,0 +1,18 @@
+int poly_aux(int n, float angle) {
+  if (n > 0) {
+     move(1.0);
+     rotate(angle);
+     poly_aux(n-1, angle)
+  } else 0
+}
+
+int poly(int sides) {
+  let (angle = 360.0/sides) {
+    poly_aux(sides, angle)
+  }
+}
+
+int tmain() {
+  pendown(true);
+  poly(80)
+}    

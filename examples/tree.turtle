@@ -1,0 +1,26 @@
+int foo(int depth) {
+  if (depth > 0) {
+    foo(depth-1);
+    foo(depth-1)
+  } else
+    move(1.0)
+}
+
+int bar(int depth) {
+  if (depth > 0) {
+    foo(depth-1);
+    pushstate();
+    rotate(45.0);
+    bar(depth-1);  # draw leaf here?
+    popstate();
+    rotate(-45.0);
+    bar(depth-1)
+  } else
+    move(1.0)
+}
+
+int tmain() {
+  rotate(90);
+  pendown(true);
+  bar(8)
+}
