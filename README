@@ -1,5 +1,4 @@
 Name: Max Greer
-WSUID: 10669729
 Email: themaxgreer@gmail.com
 Project: Turtle Compiler
 
@@ -13,7 +12,7 @@ Description
   Compiles "Turle Language" source code into LLVM assembler.
 
 Building
-  Requires g++, bison, flex
+  Requires g++, bison, flex, llvm
 -  Use Makefile build 'fturtlec' executable:
      make
 -  To create a Turtle Graphics image:
